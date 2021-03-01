@@ -29,6 +29,7 @@ Note: for this assignment I modified the `age` variable and created a new variab
 
 ```{r load package(s), message = FALSE}
 library(haven)
+library(janitor)
 library(tidyverse)
 ```
 
@@ -38,12 +39,12 @@ library(tidyverse)
 
 ##### 6 points  
 
-* (3 points) Create a LIBNAME statement telling SAS which folder your SAS data set is contained in.  
-* (3 points) Use a SAS command to make a copy of this data file into your temporary (“work”) folder. For the rest of the assignment, make sure you are using the ‘temporary’ SAS data file and not the original one.  
+* (**3 points**) Create a LIBNAME statement telling SAS which folder your SAS data set is contained in.  
+* (**3 points**) Use a SAS command to make a copy of this data file into your temporary (“work”) folder. For the rest of the assignment, make sure you are using the ‘temporary’ SAS data file and not the original one.  
 
 ```{r import data}
 hw1 <- read_sas('./data/hw1_2019.sas7bdat') %>% 
-    janitor::clean_names()
+    clean_names()
 
 head(hw1)
 ```
@@ -54,19 +55,19 @@ head(hw1)
 
 ##### 7 points  
 
-* (2 points) How many **variables** are in the dataset?  
+* (**2 points**) How many **variables** are in the dataset?  
 
 ```{r question 2a}
 ncol(hw1)
 ```
 
-* (2 points) How many **observations** are there in the dataset?  
+* (**2 points**) How many **observations** are there in the dataset?  
 
 ```{r question 2b}
 nrow(hw1)
 ```
 
-* (3 points) ~~Write the necessary SAS code to ensure that the variable names are presented in their order of appearance in the dataset.~~  
+* (**3 points**) ~~Write the necessary SAS code to ensure that the variable names are presented in their order of appearance in the dataset.~~  
 
 ***  
 
@@ -74,9 +75,9 @@ nrow(hw1)
 
 ##### 22 points  
 
-* (2 points) ~~What does the column “Obs” refer to?~~  
+* (**2 points**) ~~What does the column “Obs” refer to?~~  
 
-* (5 points) Write a SAS code to print the first 50 observations of the following variables (one code displaying all three variables and nothing else). ~~REMOVE THE PRINTOUT OF THE “OBS” column in your SAS code~~:  
+* (**5 points**) Write a SAS code to print the first 50 observations of the following variables (one code displaying all three variables and nothing else). ~~REMOVE THE PRINTOUT OF THE “OBS” column in your SAS code~~:  
     i. Age (variable name “`age`”)  
     ii.	Language primarily spoken at home (variable name “`other_language_at_home`”)  
     iii. Body Mass Index (variable name “`bmxbmi`”)  
@@ -88,7 +89,7 @@ hw1 %>%
     knitr::kable(align = 'c')
 ```
 
-* (5 points) Write a SAS code to print observations from observation 500 to observation 550 of the following variables ~~while changing the orientation of the variable name headings to vertical~~:  
+* (**5 points**) Write a SAS code to print observations from observation 500 to observation 550 of the following variables ~~while changing the orientation of the variable name headings to vertical~~:  
     i. Age (variable name “`age`”)  
     ii.	Language primarily spoken at home (variable name “`other_language_at_home`”)  
     iii. Body Mass Index (variable name “`bmxbmi`”)  
@@ -97,24 +98,96 @@ hw1 %>%
 hw1 %>% slice(500:549)
 ```
 
-* (5 points for code, 1 for answer) - Write a SAS code to print out all of the data for individuals aged greater than or equal to 50 years of age (using the age variable named “`age`”). How many observations are there?  
+* (**5 points for code, 1 for answer**) - Write a SAS code to print out all of the data for individuals aged greater than or equal to 50 years of age (using the age variable named “`age`”). How many observations are there?  
 
 ```{r question 3d}
-# It is unreasonable to print the entire output - only the first ten observations are printed  
+# It is unreasonable to print the entire output - only the first ten observations are printed
 hw1 %>% 
     filter(age >= 50) %>% 
     head() %>% 
     knitr::kable(align = 'c')
 
-# There are 2825 observations  
+# There are 2825 observations
 hw1 %>% 
     filter(age >= 50) %>% 
     count()
 ```
 
-* (5 points for code, 1 for answer) - Write a SAS code to print out all of the data for individuals aged greater than or equal to 50 years of age (using the age variable named “`age`”) **AND** who have missing data for the variable Body Mass Index (variable name “`bmxbmi`”). How many observations are there?  
+* (**5 points for code, 1 for answer**) - Write a SAS code to print out all of the data for individuals aged greater than or equal to 50 years of age (using the age variable named “`age`”) **AND** who have missing data for the variable Body Mass Index (variable name “`bmxbmi`”). How many observations are there?  
 
-```{r}
+```{r question 3e}
+# It is unreasonable to print the entire output - only the first ten observations are printed
+hw1 %>% 
+    filter(age >= 50 & is.na(bmxbmi)) %>% 
+    head() %>% 
+    knitr::kable(align = 'c')
 
+# There are 169 observations
+hw1 %>% 
+    filter(age >= 50 & is.na(bmxbmi)) %>%
+    count()
 ```
+
+***  
+
+#### Question 4 - Using `proc freq`, answer the following questions  
+
+##### 27 points  
+
+* (**5 points for code, 3 points for answer**) How many, and what percent, of observations in the total data set indicate that a language other than English is spoken at home (`other_language_at_home = 1`)? How many, and what percent indicate that English is the only language spoken at home (`other_language_at_home = 0`)? How many and what percentage of observations have missing data for this variable? IN YOUR ANSWER, BE SURE TO INDICATE WHAT YOUR DENOMINATOR IS IN YOUR PERCENTAGE CALCULATIONS.  
+
+```{r question 4a}
+# Crude percentages (includes NAs)
+hw1 %>% 
+    tabyl(other_language_at_home)
+
+# Adjusted percentages (excludes NAs)
+hw1 %>% 
+    tabyl(other_language_at_home, show_na = FALSE)
+```
+
+* (**5 points for code, 3 points for answer**) Repeat the previous question, but this time restricting your answer to the participants aged 18 years and above.  
+
+```{r question 4b}
+# Crude percentages (includes NAs)
+hw1 %>% 
+    filter(age >= 18) %>% 
+    tabyl(other_language_at_home)
+
+# Adjusted percentages (excludes NAs)
+hw1 %>% 
+    filter(age >= 18) %>% 
+    tabyl(other_language_at_home, show_na = FALSE)
+```
+
+* (**3 points**) Please speculate at least one plausible reason for the difference in the proportion with missing information on the language spoken at home in 4a vs 4b.  
+
+[Answer to be provided]  
+
+* (**5 points for code, 3 points for answer**) Among those who answered “Yes” or “No” to the question (variable name: `hiq011`) “Are you covered by health insurance or some other kind of health care plan?”, what is the proportion covered by health insurance among those responding that they speak a language other than English at home? What is the proportion covered by health insurance among those responding that they speak only English at home?  
+
+```{r question 4d}
+# First, we need to know what observations are in the hiq011 variable
+hw1 %>% 
+    tabyl(hiq011)
+
+# We only want '1' and '2' observations
+hw1 %>% 
+    filter(hiq011 %in% c(1,2) & !is.na(other_language_at_home)) %>% 
+    tabyl(hiq011, other_language_at_home) %>% 
+    adorn_totals(where = c("row", "col")) %>% 
+    adorn_percentages(denominator = "all") %>% 
+    adorn_pct_formatting(digits = 1)
+```
+
+***  
+
+#### Question 5 - Using `proc means`, answer the following questions  
+
+##### 24 points  
+
+* (**5 points for code, 3 points for answer**) Report the N (sample size), number of observations with missing data, median, IQR, mean, and standard deviation for the following variables:  
+
+    i. Age (`age`)  
+    ii.	Body-Mass Index (`bmxbmi`)  
 
